@@ -11,10 +11,12 @@
       --warn:#f59e0b; --good:#34d399; --bad:#fb7185;
       --shadow: 0 20px 60px rgba(0,0,0,.35);
       --radius:18px;
+      --tap:44px;
       font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Kaku Gothic ProN", "Yu Gothic", Meiryo, sans-serif;
     }
     *{box-sizing:border-box}
-    body{margin:0; background: radial-gradient(circle at top left, rgba(124,58,237,.22), transparent 32%), radial-gradient(circle at top right, rgba(34,211,238,.15), transparent 35%), var(--bg); color:var(--txt);}
+    html, body{touch-action:manipulation;}
+    body{margin:0; background: radial-gradient(circle at top left, rgba(124,58,237,.22), transparent 32%), radial-gradient(circle at top right, rgba(34,211,238,.15), transparent 35%), var(--bg); color:var(--txt); padding-bottom: env(safe-area-inset-bottom);}
     header{padding:28px 22px 10px; max-width:1280px; margin:auto;}
     h1{margin:0; font-size:clamp(24px,3vw,40px); letter-spacing:.02em;}
     .sub{color:var(--muted); margin-top:8px; line-height:1.65; max-width:920px;}
@@ -25,7 +27,7 @@
     .card h2{font-size:16px; margin:0; padding:16px 18px; border-bottom:1px solid var(--line); background:rgba(255,255,255,.025);}
     .body{padding:16px 18px;}
     label{display:block; font-size:13px; color:#cbd5e1; margin:14px 0 7px; font-weight:700;}
-    input[type="text"], textarea, select{width:100%; border:1px solid var(--line); border-radius:12px; background:#080d1b; color:var(--txt); padding:11px 12px; outline:none; font-size:14px;}
+    input[type="text"], textarea, select{width:100%; border:1px solid var(--line); border-radius:12px; background:#080d1b; color:var(--txt); padding:11px 12px; outline:none; font-size:16px;}
     textarea{min-height:170px; resize:vertical; line-height:1.55; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;}
     .sourceText{min-height:260px;}
     .outText{min-height:560px;}
@@ -36,7 +38,7 @@
     .checks{display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:8px;}
     .check{display:flex; align-items:center; gap:8px; border:1px solid var(--line); border-radius:12px; padding:9px 10px; background:#0a1020; color:#cbd5e1; font-size:13px;}
     .btns{display:flex; flex-wrap:wrap; gap:10px; margin-top:14px;}
-    button{border:none; border-radius:12px; padding:10px 13px; color:white; background:linear-gradient(135deg,var(--accent),#2563eb); cursor:pointer; font-weight:800; letter-spacing:.02em;}
+    button{border:none; border-radius:12px; padding:10px 13px; color:white; background:linear-gradient(135deg,var(--accent),#2563eb); cursor:pointer; font-weight:800; letter-spacing:.02em; min-height:var(--tap);}
     button.secondary{background:#18233d; border:1px solid var(--line); color:#dbeafe;}
     button.good{background:linear-gradient(135deg,#059669,#0ea5e9)}
     button.warn{background:linear-gradient(135deg,#b45309,#db2777)}
@@ -53,7 +55,66 @@
     .danger{color:var(--bad)} .ok{color:var(--good)} .warnTxt{color:var(--warn)}
     .toast{position:fixed; right:18px; bottom:18px; background:#06251c; border:1px solid rgba(52,211,153,.5); color:#bbf7d0; padding:12px 14px; border-radius:12px; display:none; box-shadow:var(--shadow);}
     .templateBox{font-size:12px; color:#cbd5e1; white-space:pre-wrap; max-height:220px; overflow:auto; background:#080d1b; border:1px solid var(--line); border-radius:12px; padding:12px;}
-  </style>
+    button, .check, summary, label{touch-action:manipulation;}
+    .outputHeader{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:14px;}
+    .outputHeader label{margin:0; flex:1;}
+    .miniBtn{min-height:38px; padding:8px 10px; font-size:12px; border-radius:10px; letter-spacing:0;}
+    .mobileActions{display:none;}
+    @media(max-width:980px){
+      body{padding-bottom:92px;}
+      header{padding:20px 14px 8px;}
+      main{padding:10px 14px 18px; gap:12px;}
+      .card h2{padding:14px;}
+      .body{padding:14px;}
+      .sticky{position:static!important}
+      .mobileActions{
+        display:grid;
+        grid-template-columns:1fr 1fr 1fr;
+        gap:10px;
+        position:fixed;
+        left:12px;
+        right:12px;
+        bottom:calc(10px + env(safe-area-inset-bottom));
+        z-index:20;
+        padding:10px;
+        border:1px solid var(--line);
+        border-radius:14px;
+        background:rgba(8,13,27,.94);
+        box-shadow:var(--shadow);
+        backdrop-filter:blur(8px);
+      }
+      .mobileActions button{width:100%;}
+      body.outputFullscreen{padding-bottom:0; overflow:hidden;}
+      body.outputFullscreen header,
+      body.outputFullscreen #controlPanel,
+      body.outputFullscreen .mobileActions,
+      body.outputFullscreen #sourceGroup,
+      body.outputFullscreen .preview{display:none;}
+      body.outputFullscreen main{display:block; max-width:none; margin:0; padding:0;}
+      body.outputFullscreen #outputPanel{min-height:100dvh; border-radius:0; border-left:none; border-right:none; border-top:none;}
+      body.outputFullscreen #outputPanel .body{padding:12px;}
+      body.outputFullscreen #output{height:calc(100dvh - 116px); min-height:calc(100dvh - 116px);}
+      .toast{right:12px; left:12px; bottom:calc(84px + env(safe-area-inset-bottom)); text-align:center;}
+    }
+    @media(max-width:700px){
+      .preview{grid-template-columns:1fr 1fr}
+      .grid2{grid-template-columns:1fr;}
+      .checks{grid-template-columns:1fr;}
+      .btns{display:grid; grid-template-columns:1fr 1fr;}
+      .mobileActions{grid-template-columns:1fr 1fr;}
+      .mobileActions .wideOnNarrow{grid-column:1/-1;}
+      .sourceText{min-height:220px;}
+      .outText{min-height:420px;}
+    }
+    @media(max-width:520px){
+      h1{font-size:clamp(22px,7vw,30px);}
+      .sub{font-size:13px; line-height:1.6;}
+      label{font-size:14px;}
+      .pill span{font-size:15px;}
+      .btns{grid-template-columns:1fr;}
+      .row{grid-template-columns:1fr 68px; gap:8px;}
+    }
+   </style>
 </head>
 <body>
   <header>
@@ -63,7 +124,7 @@
   </header>
 
   <main>
-    <section class="card sticky">
+    <section class="card sticky" id="controlPanel">
       <h2>操作パネル</h2>
       <div class="body">
         <label>スレタイ接頭辞（固定候補）</label>
@@ -128,7 +189,7 @@
       </details>
     </section>
 
-    <section class="card">
+    <section class="card" id="outputPanel">
       <h2>本文入力 / 出力プロンプト</h2>
       <div class="body">
         <div class="preview">
@@ -138,14 +199,24 @@
           <div class="pill"><b>コピー状態</b><span id="copyState" class="warnTxt">未コピー</span></div>
         </div>
 
-        <label>ここに元ネタ本編テキストを貼る</label>
-        <textarea id="source" class="sourceText" placeholder="例：GPT・Grok・Claude・Geminiの会話ログ、元記事、AI座談会などをここに貼る"></textarea>
+        <div id="sourceGroup">
+          <label>ここに元ネタ本編テキストを貼る</label>
+          <textarea id="source" class="sourceText" placeholder="例：GPT・Grok・Claude・Geminiの会話ログ、元記事、AI座談会などをここに貼る"></textarea>
+        </div>
 
-        <label>生成プロンプト</label>
+        <div class="outputHeader">
+          <label>生成プロンプト</label>
+          <button id="toggleOutputFullscreenBtn" class="secondary miniBtn" type="button" onclick="toggleOutputFullscreen()">出力全画面</button>
+        </div>
         <textarea id="output" class="outText" readonly></textarea>
       </div>
     </section>
   </main>
+  <div class="mobileActions">
+    <button class="good" onclick="buildPrompt()">生成</button>
+    <button onclick="copyPrompt()">コピー</button>
+    <button id="mobileOutputToggleBtn" class="secondary wideOnNarrow" onclick="toggleOutputFullscreen()">出力全画面</button>
+  </div>
   <div id="toast" class="toast">コピーしたで</div>
 
 <script>
@@ -199,6 +270,26 @@ document.getElementById('templateView').textContent = basePrompt + '\n\n---\n\n'
 
 function toneLabel(n){
   n=Number(n); if(n<=3) return '控えめ'; if(n<=7) return '中'; return '強め';
+}
+function isMobileView(){
+  return window.matchMedia('(max-width: 980px)').matches;
+}
+function setFullscreenButtonLabel(isFullscreen){
+  const label = isFullscreen ? '全画面終了' : '出力全画面';
+  document.getElementById('toggleOutputFullscreenBtn').textContent = label;
+  document.getElementById('mobileOutputToggleBtn').textContent = label;
+}
+function toggleOutputFullscreen(force){
+  if(!isMobileView()) return;
+  const body = document.body;
+  const next = typeof force === 'boolean' ? force : !body.classList.contains('outputFullscreen');
+  body.classList.toggle('outputFullscreen', next);
+  setFullscreenButtonLabel(next);
+  if(next){
+    const out = document.getElementById('output');
+    out.focus();
+    out.scrollTop = 0;
+  }
 }
 function buildPrompt(){
   const src = v('source').trim();
@@ -264,6 +355,27 @@ function downloadPrompt(){
   a.href=URL.createObjectURL(blob); a.download='jemi_prompt.txt'; a.click(); URL.revokeObjectURL(a.href);
 }
 function clearSource(){ document.getElementById('source').value=''; updateState(); }
+window.addEventListener('resize', ()=>{
+  if(!isMobileView() && document.body.classList.contains('outputFullscreen')){
+    document.body.classList.remove('outputFullscreen');
+    setFullscreenButtonLabel(false);
+  }
+});
+
+// iPhone/Safari向け: 非入力エリアでのダブルタップ拡大を抑制
+let lastTouchEndAt = 0;
+document.addEventListener('touchend', (e)=>{
+  const now = Date.now();
+  const delta = now - lastTouchEndAt;
+  const isDoubleTap = delta > 0 && delta < 320;
+  const inEditable = e.target.closest('input, textarea, select, [contenteditable="true"]');
+  if(isDoubleTap && !inEditable){
+    e.preventDefault();
+  }
+  lastTouchEndAt = now;
+}, {passive:false});
+
+setFullscreenButtonLabel(false);
 buildPrompt();
 </script>
 </body>
