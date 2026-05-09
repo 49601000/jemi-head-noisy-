@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>「ジェミの頭の中がうるさすぎる」専用｜プロンプト生成コンソール</title>
+  <style>
+    :root{
+      --bg:#0b1020; --panel:#121a2f; --panel2:#0f172a; --line:#27324f;
+      --txt:#e5e7eb; --muted:#94a3b8; --accent:#7c3aed; --accent2:#22d3ee;
+      --warn:#f59e0b; --good:#34d399; --bad:#fb7185;
+      --shadow: 0 20px 60px rgba(0,0,0,.35);
+      --radius:18px;
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Kaku Gothic ProN", "Yu Gothic", Meiryo, sans-serif;
+    }
+    *{box-sizing:border-box}
+    body{margin:0; background: radial-gradient(circle at top left, rgba(124,58,237,.22), transparent 32%), radial-gradient(circle at top right, rgba(34,211,238,.15), transparent 35%), var(--bg); color:var(--txt);}
+    header{padding:28px 22px 10px; max-width:1280px; margin:auto;}
+    h1{margin:0; font-size:clamp(24px,3vw,40px); letter-spacing:.02em;}
+    .sub{color:var(--muted); margin-top:8px; line-height:1.65; max-width:920px;}
+    .badge{display:inline-flex; gap:8px; align-items:center; padding:6px 10px; border:1px solid var(--line); border-radius:999px; background:rgba(15,23,42,.7); color:#c4b5fd; font-size:12px; margin-bottom:12px;}
+    main{max-width:1280px; margin:0 auto; padding:18px 22px 34px; display:grid; grid-template-columns: 430px 1fr; gap:18px;}
+    @media(max-width:980px){main{grid-template-columns:1fr}.sticky{position:static!important}}
+    .card{background:linear-gradient(180deg, rgba(18,26,47,.96), rgba(15,23,42,.96)); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); overflow:hidden;}
+    .card h2{font-size:16px; margin:0; padding:16px 18px; border-bottom:1px solid var(--line); background:rgba(255,255,255,.025);}
+    .body{padding:16px 18px;}
+    label{display:block; font-size:13px; color:#cbd5e1; margin:14px 0 7px; font-weight:700;}
+    input[type="text"], textarea, select{width:100%; border:1px solid var(--line); border-radius:12px; background:#080d1b; color:var(--txt); padding:11px 12px; outline:none; font-size:14px;}
+    textarea{min-height:170px; resize:vertical; line-height:1.55; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;}
+    .sourceText{min-height:260px;}
+    .outText{min-height:560px;}
+    input[type="range"]{width:100%; accent-color:var(--accent2)}
+    .row{display:grid; grid-template-columns:1fr 74px; gap:12px; align-items:center;}
+    .val{font-variant-numeric:tabular-nums; text-align:center; border:1px solid var(--line); border-radius:10px; padding:7px 8px; color:#a7f3d0; background:#08111f;}
+    .grid2{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+    .checks{display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:8px;}
+    .check{display:flex; align-items:center; gap:8px; border:1px solid var(--line); border-radius:12px; padding:9px 10px; background:#0a1020; color:#cbd5e1; font-size:13px;}
+    .btns{display:flex; flex-wrap:wrap; gap:10px; margin-top:14px;}
+    button{border:none; border-radius:12px; padding:10px 13px; color:white; background:linear-gradient(135deg,var(--accent),#2563eb); cursor:pointer; font-weight:800; letter-spacing:.02em;}
+    button.secondary{background:#18233d; border:1px solid var(--line); color:#dbeafe;}
+    button.good{background:linear-gradient(135deg,#059669,#0ea5e9)}
+    button.warn{background:linear-gradient(135deg,#b45309,#db2777)}
+    .mini{font-size:12px; color:var(--muted); line-height:1.55; margin-top:8px;}
+    details{border-top:1px solid var(--line);}
+    summary{cursor:pointer; padding:14px 18px; color:#ddd6fe; font-weight:800; user-select:none;}
+    details .body{padding-top:0}
+    .sticky{position:sticky; top:14px; align-self:start;}
+    .preview{display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:12px;}
+    @media(max-width:700px){.preview{grid-template-columns:1fr 1fr}}
+    .pill{border:1px solid var(--line); background:#0a1020; border-radius:14px; padding:10px;}
+    .pill b{display:block; font-size:11px; color:var(--muted); margin-bottom:4px;}
+    .pill span{font-size:16px; color:#f8fafc;}
+    .danger{color:var(--bad)} .ok{color:var(--good)} .warnTxt{color:var(--warn)}
+    .toast{position:fixed; right:18px; bottom:18px; background:#06251c; border:1px solid rgba(52,211,153,.5); color:#bbf7d0; padding:12px 14px; border-radius:12px; display:none; box-shadow:var(--shadow);}
+    .templateBox{font-size:12px; color:#cbd5e1; white-space:pre-wrap; max-height:220px; overflow:auto; background:#080d1b; border:1px solid var(--line); border-radius:12px; padding:12px;}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="badge">🧠 「ジェミの頭の中がうるさすぎる」専用 / Prompt Builder</div>
+    <h1>元ネタ本文 → なんJツッコミスレ生成プロンプト</h1>
+    <p class="sub">本編テキストを貼るだけで、Gemに投げる用の完成プロンプトを生成する単一HTMLアプリ。出力形式は「スレ民が第三者視点で自由にツッコむ」「要約しすぎない」「最後に補足3語」寄せ。</p>
+  </header>
+
+  <main>
+    <section class="card sticky">
+      <h2>操作パネル</h2>
+      <div class="body">
+        <label>スレタイ接頭辞（固定候補）</label>
+        <select id="prefix">
+          <option>【悲報】</option><option>【朗報】</option><option>【謎】</option><option>【困惑】</option><option>【地獄】</option><option>【草】</option><option>最新AIさん、</option>
+        </select>
+
+        <label>スレタイ接頭辞（編集可）</label>
+        <input id="prefixCustom" type="text" value="【悲報】" placeholder="例：【緊急】 / 【検証】 / ジェミ速報 / 最新AIさん、" />
+        <p class="mini">固定候補を選ぶとここに反映。最終的に使う接頭辞はこの編集欄の文字やで。</p>
+
+        <label>題材の呼び名</label>
+        <input id="subjectName" type="text" value="AIさんたち" placeholder="例：AIさんたち / 最新AIさん / ジェミニキ" />
+
+        <div class="grid2">
+          <div>
+            <label>レス数</label>
+            <div class="row"><input id="resCount" type="range" min="8" max="30" value="19"><div class="val" id="resCountVal">19</div></div>
+          </div>
+          <div>
+            <label>【スレ民による補足】個数</label>
+            <div class="row"><input id="termCount" type="range" min="2" max="5" value="3"><div class="val" id="termCountVal">3</div></div>
+          </div>
+        </div>
+
+        <label>ツッコミ強度</label>
+        <div class="row"><input id="tsukkomi" type="range" min="1" max="10" value="6"><div class="val" id="tsukkomiVal">6</div></div>
+
+        <label>解説の濃さ</label>
+        <div class="row"><input id="explain" type="range" min="1" max="10" value="6"><div class="val" id="explainVal">6</div></div>
+
+        <label>脱線・雑談度</label>
+        <div class="row"><input id="chaos" type="range" min="0" max="10" value="4"><div class="val" id="chaosVal">4</div></div>
+
+        <label>メタ視点</label>
+        <div class="row"><input id="meta" type="range" min="0" max="10" value="5"><div class="val" id="metaVal">5</div></div>
+
+        <label>出力オプション</label>
+        <div class="checks">
+          <label class="check"><input id="aa" type="checkbox" checked> シンプルAA可</label>
+          <label class="check"><input id="quotes" type="checkbox" checked> 元文引用多め</label>
+          <label class="check"><input id="noBold" type="checkbox" checked> **禁止を明記</label>
+          <label class="check"><input id="notSummary" type="checkbox" checked> 要約禁止を強める</label>
+          <label class="check"><input id="timestamp" type="checkbox" checked> 日時IDつき</label>
+          <label class="check"><input id="jkPunch" type="checkbox"> 雑な決め台詞許可</label>
+        </div>
+
+        <div class="btns">
+          <button class="good" onclick="buildPrompt()">プロンプト生成</button>
+          <button onclick="copyPrompt()">コピー</button>
+          <button class="secondary" onclick="downloadPrompt()">.txt保存</button>
+          <button class="warn" onclick="clearSource()">本文クリア</button>
+        </div>
+        <p class="mini">運用：このアプリで生成したプロンプトをGemに投げる。Gemの人格・ベース指示は既にある前提なので、ここでは「今回の素材に対する出力指示」を組む。</p>
+      </div>
+
+      <details>
+        <summary>埋め込みテンプレ確認</summary>
+        <div class="body">
+          <div class="templateBox" id="templateView"></div>
+        </div>
+      </details>
+    </section>
+
+    <section class="card">
+      <h2>本文入力 / 出力プロンプト</h2>
+      <div class="body">
+        <div class="preview">
+          <div class="pill"><b>モード</b><span>第三者ツッコミ</span></div>
+          <div class="pill"><b>フォーマット</b><span>なんJスレ</span></div>
+          <div class="pill"><b>要約圧</b><span id="summaryState" class="ok">低め</span></div>
+          <div class="pill"><b>コピー状態</b><span id="copyState" class="warnTxt">未コピー</span></div>
+        </div>
+
+        <label>ここに元ネタ本編テキストを貼る</label>
+        <textarea id="source" class="sourceText" placeholder="例：GPT・Grok・Claude・Geminiの会話ログ、元記事、AI座談会などをここに貼る"></textarea>
+
+        <label>生成プロンプト</label>
+        <textarea id="output" class="outText" readonly></textarea>
+      </div>
+    </section>
+  </main>
+  <div id="toast" class="toast">コピーしたで</div>
+
+<script>
+const basePrompt = `あなたは、専門的・抽象的・複雑な内容を「なんjスレ風」に翻訳する解説者です。
+
+【基本方針】
+- 情報の正確性は維持したまま、なんjスレ形式で説明する
+- 読みやすさ・直感的理解を最優先
+- 難しい概念は「レスの掛け合い」で分解する
+- AAなどを用いて図解が必要なら図解をする
+
+【レスの特徴】
+- 1レス1ポイントで短く区切る
+- 「>>番号」での会話構造を使う
+- 適度にツッコミ・言い換え・例えを入れる
+- 専門用語はそのまま出してOKだが、必ず平易な言い換えを添える
+
+【禁止事項】
+- 情報の誤簡略化
+- 結論の省略
+- ただのネタ化`; 
+
+const jemiPrompt = `「ジェミの頭の中がうるさすぎる」専用プロンプト
+
+本文の内容をなんj風にみんなでツッコむクソスレを立ててください。
+・軽い感じでOK
+・内容のまとめや要約は不要
+・貼り付けたAIとしての立場ではなく、あくまでスレ民たちが自由に第三者視点でツッコむ
+・AAは環境依存を避けるためシンプルAAのみ使用
+・最後は【スレ民による補足】としてワードを雑にまとめる`; 
+
+function v(id){return document.getElementById(id).value}
+function checked(id){return document.getElementById(id).checked}
+function bindRange(id){
+  const el=document.getElementById(id), out=document.getElementById(id+'Val');
+  const f=()=>{out.textContent=el.value; updateState();}; el.addEventListener('input',f); f();
+}
+['resCount','termCount','tsukkomi','explain','chaos','meta'].forEach(bindRange);
+['prefix','prefixCustom','subjectName','aa','quotes','noBold','notSummary','timestamp','jkPunch','source'].forEach(id=>{
+  document.getElementById(id).addEventListener('input', updateState);
+  document.getElementById(id).addEventListener('change', updateState);
+});
+
+
+document.getElementById('prefix').addEventListener('change', ()=>{
+  document.getElementById('prefixCustom').value = document.getElementById('prefix').value;
+  updateState();
+});
+
+document.getElementById('templateView').textContent = basePrompt + '\n\n---\n\n' + jemiPrompt;
+
+function toneLabel(n){
+  n=Number(n); if(n<=3) return '控えめ'; if(n<=7) return '中'; return '強め';
+}
+function buildPrompt(){
+  const src = v('source').trim();
+  const lines = [];
+  lines.push(basePrompt);
+  lines.push('\n---\n');
+  lines.push(jemiPrompt);
+  lines.push('\n\n【今回の出力設定】');
+  lines.push(`- スレタイ接頭辞は「${v('prefixCustom') || v('prefix')}」を優先`);
+  lines.push(`- 題材の呼び名は「${v('subjectName') || 'AIさんたち'}」を優先`);
+  lines.push(`- レス数の目安：${v('resCount')}レス前後`);
+  lines.push(`- ツッコミ強度：${v('tsukkomi')}/10（${toneLabel(v('tsukkomi'))}）`);
+  lines.push(`- 解説の濃さ：${v('explain')}/10（${toneLabel(v('explain'))}）`);
+  lines.push(`- 脱線・雑談度：${v('chaos')}/10`);
+  lines.push(`- メタ視点：${v('meta')}/10`);
+  lines.push(`- 最後の【スレ民による補足】は${v('termCount')}語くらい`);
+  if(checked('noBold')) lines.push('- 出力にMarkdownの太字記法「**」は使わない');
+  if(checked('notSummary')) lines.push('- 本文全体をきれいに要約しない。あくまでスレ民が気になった箇所へツッコむ形にする');
+  if(checked('aa')) lines.push('- 必要ならシンプルAAや簡単な図解を1〜2個だけ入れてよい。ただし崩れやすい大型AAは禁止');
+  else lines.push('- AAは使わない');
+  if(checked('quotes')) lines.push('- 元本文の印象的な語句・発言を適度に拾い、スレ民がそこへ安価で反応する形にする');
+  else lines.push('- 元本文の直接引用は控えめにし、内容へのツッコミ中心にする');
+  if(checked('timestamp')) lines.push('- なんJ風に日時とIDを付ける。ただし厳密性より雰囲気優先');
+  else lines.push('- 日時とIDは省略してよい');
+  if(checked('jkPunch')) lines.push('- 最後に雑な決め台詞や身も蓋もない一言で落としてよい');
+
+  lines.push('\n【出力形式】');
+  lines.push('1. スレタイ');
+  lines.push('2. 1レス目で「ソースはこれや」的に本文を提示する流れを作る');
+  lines.push('3. 2レス目以降、スレ民が第三者視点で自由にツッコむ');
+  lines.push('4. 適度に「>>番号」で会話する');
+  lines.push('5. 最後に【スレ民による補足】を置き、重要ワードを雑に説明する');
+
+  lines.push('\n【注意】');
+  lines.push('- 貼り付け本文のAI本人として返答しない');
+  lines.push('- 先生っぽくまとめすぎない');
+  lines.push('- 元ネタの面白い違和感、過剰さ、論点のズレを拾う');
+  lines.push('- 情報の意味が壊れるほど雑にしない');
+
+  lines.push('\n#以下本文######');
+  lines.push(src || '（ここに本文を貼り付け）');
+  const text = lines.join('\n');
+  document.getElementById('output').value = text;
+  document.getElementById('copyState').textContent = '生成済み';
+  document.getElementById('copyState').className = 'ok';
+}
+function updateState(){
+  const strict = checked('notSummary') ? '低め' : '普通';
+  document.getElementById('summaryState').textContent = strict;
+  document.getElementById('summaryState').className = checked('notSummary') ? 'ok' : 'warnTxt';
+}
+async function copyPrompt(){
+  if(!document.getElementById('output').value.trim()) buildPrompt();
+  await navigator.clipboard.writeText(document.getElementById('output').value);
+  document.getElementById('copyState').textContent='コピー済み';
+  document.getElementById('copyState').className='ok';
+  const t=document.getElementById('toast'); t.style.display='block'; setTimeout(()=>t.style.display='none',1400);
+}
+function downloadPrompt(){
+  if(!document.getElementById('output').value.trim()) buildPrompt();
+  const blob = new Blob([document.getElementById('output').value], {type:'text/plain;charset=utf-8'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob); a.download='jemi_prompt.txt'; a.click(); URL.revokeObjectURL(a.href);
+}
+function clearSource(){ document.getElementById('source').value=''; updateState(); }
+buildPrompt();
+</script>
+</body>
+</html>
