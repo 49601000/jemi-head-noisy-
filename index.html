@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>「ジェミの頭の中がうるさすぎる」専用｜プロンプト生成コンソール</title>
   <style>
-    /* ===== CSS ===== */
+    /* ===== CSS STYLE LAYER ===== */
     /* Base */
     :root{
       --bg:#0b1020; --panel:#121a2f; --panel2:#0f172a; --line:#27324f;
@@ -120,7 +120,7 @@
    </style>
 </head>
 <body>
-  <!-- ===== HTML ===== -->
+  <!-- ===== HTML UI LAYER ===== -->
   <!-- Header -->
   <header>
     <div class="badge">🧠 「ジェミの頭の中がうるさすぎる」専用 / Prompt Builder</div>
@@ -179,6 +179,20 @@
         <div class="row"><select id="presetSelect"></select><button class="secondary" type="button" onclick="applyPreset()">適用</button></div>
 
         <label>出力オプション</label>
+        <label>ネタ燃料</label>
+        <select id="referenceDomain">
+          <option value="random">おまかせ</option>
+          <option value="baseball">野球</option>
+          <option value="anime">アニメ</option>
+          <option value="game">ゲーム</option>
+          <option value="current_affairs">時事ネタ</option>
+          <option value="net_meme">ネットミーム</option>
+          <option value="history">歴史</option>
+          <option value="finance">金融</option>
+          <option value="science">理系</option>
+          <option value="animal">動物</option>
+          <option value="chaos_mix">カオスMIX</option>
+        </select>
         <div class="checks">
           <label class="check"><input id="aa" type="checkbox" checked> シンプルAA可</label>
           <label class="check"><input id="noBold" type="checkbox" checked> **禁止を明記</label>
@@ -237,7 +251,7 @@
   <div id="toast" class="toast">コピーしたで</div>
 
 <script>
-/* ===== DSL ===== */
+/* ===== DSL CONFIG LAYER ===== */
 const basePrompt = `あなたは、専門的・抽象的・複雑な内容を「なんjスレ風」に翻訳する解説者です。
 
 【基本方針】
@@ -331,27 +345,43 @@ const dsl = {
       ]
     }
   },
+  referenceDomain: {
+    label: 'ネタ燃料',
+    options: {
+      random: {label:'おまかせ', prompt:'本文に合うネタ素材を自然に選ぶ。特定ジャンルに寄せすぎない。'},
+      baseball: {label:'野球', prompt:'ツッコミや例えに、野球用語・試合展開・監督采配・戦犯概念・助っ人外国人・打率などを優先的に使う。ただし本文理解を壊すほど乱用しない。'},
+      anime: {label:'アニメ', prompt:'アニメや漫画の典型展開、キャラ属性、最終回、覚醒、闇落ち、修行回などを比喩に使う。'},
+      game: {label:'ゲーム', prompt:'RPG、デスペナ、初期装備、ラスボス、バフ・デバフ、ガチャ、チュートリアルなどを比喩に使う。'},
+      current_affairs: {label:'時事ネタ', prompt:'ニュース、会見、炎上、制度変更、企業発表、政治っぽい言い回しなどを軽く使う。ただし実在個人への攻撃や断定は避ける。'},
+      net_meme: {label:'ネットミーム', prompt:'ネットスラング、SNS構文、掲示板ノリ、バズり、インプレ、謎構文などを使う。ただし古すぎる定型句を乱用しない。'},
+      history: {label:'歴史', prompt:'戦国、三国志、ローマ帝国、幕末、革命、王朝崩壊などを比喩に使う。ただし説明過多にしない。'},
+      finance: {label:'金融', prompt:'株、NISA、損切り、含み損、レバレッジ、決算、PER、バブル、流動性などを比喩に使う。ただし投資助言っぽくしない。'},
+      science: {label:'理系', prompt:'物理、化学、実験、観測、エントロピー、バグ、アルゴリズム、変数などを比喩に使う。ただし難しくしすぎない。'},
+      animal: {label:'動物', prompt:'動物行動、野生、群れ、縄張り、威嚇、擬態、ペット感などを比喩に使う。'},
+      chaos_mix: {label:'カオスMIX', prompt:'複数ジャンルをランダム気味に混ぜる。比喩の飛距離を伸ばしてよい。ただし意味不明になりすぎない。'}
+    }
+  },
   presets: {
     output_example_like: {
       label: '出力例寄せ',
-      values: {tsukkomiIntensity:6,explanationDepth:5,topicDrift:3,metaPerspective:4,sourceQuoteAmount:7,summarySuppression:7}
+      values: {tsukkomiIntensity:6,explanationDepth:5,topicDrift:3,metaPerspective:4,sourceQuoteAmount:7,summarySuppression:7,referenceDomain:'random'}
     },
     kusosure_chaos: {
       label: 'クソスレカオス',
-      values: {tsukkomiIntensity:8,explanationDepth:2,topicDrift:10,metaPerspective:2,sourceQuoteAmount:7,summarySuppression:9}
+      values: {tsukkomiIntensity:8,explanationDepth:2,topicDrift:10,metaPerspective:2,sourceQuoteAmount:7,summarySuppression:9,referenceDomain:'chaos_mix'}
     },
     explain_light: {
       label: '解説控えめツッコミ重視',
-      values: {tsukkomiIntensity:7,explanationDepth:2,topicDrift:5,metaPerspective:3,sourceQuoteAmount:6,summarySuppression:8}
+      values: {tsukkomiIntensity:7,explanationDepth:2,topicDrift:5,metaPerspective:3,sourceQuoteAmount:6,summarySuppression:8,referenceDomain:'random'}
     },
     learning_thread: {
       label: '理解補助寄り',
-      values: {tsukkomiIntensity:4,explanationDepth:8,topicDrift:2,metaPerspective:4,sourceQuoteAmount:5,summarySuppression:3}
+      values: {tsukkomiIntensity:4,explanationDepth:8,topicDrift:2,metaPerspective:4,sourceQuoteAmount:5,summarySuppression:3,referenceDomain:'science'}
     }
   }
 };
 
-/* ===== State ===== */
+/* ===== STATE / EVENT BINDING LAYER ===== */
 const scaleInputMap = {
   tsukkomiIntensity: 'tsukkomi',
   explanationDepth: 'explain',
@@ -364,7 +394,7 @@ const scaleInputMap = {
 const state = {
   defaultPresetKey: 'output_example_like',
   rangeIds: ['resCount','termCount','tsukkomi','explain','chaos','meta','quoteAmount','summarySuppression'],
-  watchIds: ['prefix','prefixCustom','subjectName','aa','noBold','timestamp','jkPunch','source','presetSelect']
+  watchIds: ['prefix','prefixCustom','subjectName','aa','noBold','timestamp','jkPunch','source','presetSelect','referenceDomain']
 };
 
 function bindRange(id){
@@ -394,6 +424,10 @@ function applyPreset(){
   const preset = dsl.presets[v('presetSelect')];
   if(!preset) return;
   Object.entries(preset.values).forEach(([scaleKey, value])=>{
+    if(scaleKey === 'referenceDomain'){
+      document.getElementById('referenceDomain').value = value;
+      return;
+    }
     const id = scaleInputMap[scaleKey];
     const el = document.getElementById(id);
     el.value = value;
@@ -403,7 +437,7 @@ function applyPreset(){
   buildPrompt();
 }
 
-/* ===== Resolver ===== */
+/* ===== RESOLVER LAYER ===== */
 function resolveRule(scale, value){
   return scale.ranges.find(r => value >= r.min && value <= r.max);
 }
@@ -421,7 +455,13 @@ function getScaleValue(scaleKey){
   return Number(v(scaleInputMap[scaleKey]));
 }
 
-/* ===== Prompt Builder ===== */
+function getReferenceDomainRule(){
+  const selectedKey = v('referenceDomain') || 'random';
+  const domain = dsl.referenceDomain.options[selectedKey] || dsl.referenceDomain.options.random;
+  return {key:selectedKey, label:domain.label, prompt:domain.prompt};
+}
+
+/* ===== PROMPT BUILDER LAYER ===== */
 function buildPrompt(){
   const src = v('source').trim();
   const lines = [];
@@ -446,6 +486,11 @@ function buildPrompt(){
     lines.push(`  ${rule.prompt}`);
     lines.push('');
   });
+  const ref = getReferenceDomainRule();
+  lines.push('【ネタ燃料】');
+  lines.push(`- 選択中：${ref.label}`);
+  lines.push(`- 指示：${ref.prompt}`);
+  lines.push('');
   if(checked('noBold')) lines.push('- 出力にMarkdownの太字記法「**」は使わない');
   if(checked('aa')) lines.push('- 必要ならシンプルAAや簡単な図解を1〜2個だけ入れてよい。ただし崩れやすい大型AAは禁止');
   else lines.push('- AAは使わない');
@@ -477,7 +522,7 @@ function updateState(){
   document.getElementById('summaryState').className = val >= 6 ? 'ok' : 'warnTxt';
 }
 
-/* ===== Utility ===== */
+/* ===== UTILITY LAYER ===== */
 function v(id){ return document.getElementById(id).value; }
 function checked(id){ return document.getElementById(id).checked; }
 
