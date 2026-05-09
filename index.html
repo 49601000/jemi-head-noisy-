@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>「ジェミの頭の中がうるさすぎる」専用｜プロンプト生成コンソール</title>
   <style>
+    /* ===== CSS ===== */
+    /* Base */
     :root{
       --bg:#0b1020; --panel:#121a2f; --panel2:#0f172a; --line:#27324f;
       --txt:#e5e7eb; --muted:#94a3b8; --accent:#7c3aed; --accent2:#22d3ee;
@@ -60,6 +62,7 @@
     .outputHeader label{margin:0; flex:1;}
     .miniBtn{min-height:38px; padding:8px 10px; font-size:12px; border-radius:10px; letter-spacing:0;}
     .mobileActions{display:none;}
+    /* Mobile */
     @media(max-width:980px){
       body{padding-bottom:92px;}
       header{padding:20px 14px 8px;}
@@ -117,13 +120,17 @@
    </style>
 </head>
 <body>
+  <!-- ===== HTML ===== -->
+  <!-- Header -->
   <header>
     <div class="badge">🧠 「ジェミの頭の中がうるさすぎる」専用 / Prompt Builder</div>
     <h1>元ネタ本文 → なんJツッコミスレ生成プロンプト</h1>
     <p class="sub">本編テキストを貼るだけで、Gemに投げる用の完成プロンプトを生成する単一HTMLアプリ。出力形式は「スレ民が第三者視点で自由にツッコむ」「要約しすぎない」「最後に補足3語」寄せ。</p>
   </header>
 
+  <!-- Main -->
   <main>
+    <!-- Control Panel -->
     <section class="card sticky" id="controlPanel">
       <h2>操作パネル</h2>
       <div class="body">
@@ -151,23 +158,30 @@
         </div>
 
         <label>ツッコミ強度</label>
-        <div class="row"><input id="tsukkomi" type="range" min="1" max="10" value="6"><div class="val" id="tsukkomiVal">6</div></div>
+        <div class="row"><input id="tsukkomi" type="range" min="0" max="10" value="6"><div class="val" id="tsukkomiVal">6</div></div>
 
         <label>解説の濃さ</label>
-        <div class="row"><input id="explain" type="range" min="1" max="10" value="6"><div class="val" id="explainVal">6</div></div>
+        <div class="row"><input id="explain" type="range" min="0" max="10" value="5"><div class="val" id="explainVal">5</div></div>
 
         <label>脱線・雑談度</label>
-        <div class="row"><input id="chaos" type="range" min="0" max="10" value="4"><div class="val" id="chaosVal">4</div></div>
+        <div class="row"><input id="chaos" type="range" min="0" max="10" value="3"><div class="val" id="chaosVal">3</div></div>
 
         <label>メタ視点</label>
-        <div class="row"><input id="meta" type="range" min="0" max="10" value="5"><div class="val" id="metaVal">5</div></div>
+        <div class="row"><input id="meta" type="range" min="0" max="10" value="4"><div class="val" id="metaVal">4</div></div>
+
+        <label>元文引用量</label>
+        <div class="row"><input id="quoteAmount" type="range" min="0" max="10" value="7"><div class="val" id="quoteAmountVal">7</div></div>
+
+        <label>要約禁止強度</label>
+        <div class="row"><input id="summarySuppression" type="range" min="0" max="10" value="7"><div class="val" id="summarySuppressionVal">7</div></div>
+
+        <label>プリセット</label>
+        <div class="row"><select id="presetSelect"></select><button class="secondary" type="button" onclick="applyPreset()">適用</button></div>
 
         <label>出力オプション</label>
         <div class="checks">
           <label class="check"><input id="aa" type="checkbox" checked> シンプルAA可</label>
-          <label class="check"><input id="quotes" type="checkbox" checked> 元文引用多め</label>
           <label class="check"><input id="noBold" type="checkbox" checked> **禁止を明記</label>
-          <label class="check"><input id="notSummary" type="checkbox" checked> 要約禁止を強める</label>
           <label class="check"><input id="timestamp" type="checkbox" checked> 日時IDつき</label>
           <label class="check"><input id="jkPunch" type="checkbox"> 雑な決め台詞許可</label>
         </div>
@@ -189,6 +203,7 @@
       </details>
     </section>
 
+    <!-- Output Panel -->
     <section class="card" id="outputPanel">
       <h2>本文入力 / 出力プロンプト</h2>
       <div class="body">
@@ -212,14 +227,17 @@
       </div>
     </section>
   </main>
+  <!-- Mobile Quick Actions -->
   <div class="mobileActions">
     <button class="good" onclick="buildPrompt()">生成</button>
     <button onclick="copyPrompt()">コピー</button>
     <button id="mobileOutputToggleBtn" class="secondary wideOnNarrow" onclick="toggleOutputFullscreen()">出力全画面</button>
   </div>
+  <!-- Toast -->
   <div id="toast" class="toast">コピーしたで</div>
 
 <script>
+/* ===== DSL ===== */
 const basePrompt = `あなたは、専門的・抽象的・複雑な内容を「なんjスレ風」に翻訳する解説者です。
 
 【基本方針】
@@ -237,7 +255,7 @@ const basePrompt = `あなたは、専門的・抽象的・複雑な内容を「
 【禁止事項】
 - 情報の誤簡略化
 - 結論の省略
-- ただのネタ化`; 
+- ただのネタ化`;
 
 const jemiPrompt = `「ジェミの頭の中がうるさすぎる」専用プロンプト
 
@@ -246,51 +264,164 @@ const jemiPrompt = `「ジェミの頭の中がうるさすぎる」専用プロ
 ・内容のまとめや要約は不要
 ・貼り付けたAIとしての立場ではなく、あくまでスレ民たちが自由に第三者視点でツッコむ
 ・AAは環境依存を避けるためシンプルAAのみ使用
-・最後は【スレ民による補足】としてワードを雑にまとめる`; 
+・最後は【スレ民による補足】としてワードを雑にまとめる`;
 
-function v(id){return document.getElementById(id).value}
-function checked(id){return document.getElementById(id).checked}
-function bindRange(id){
-  const el=document.getElementById(id), out=document.getElementById(id+'Val');
-  const f=()=>{out.textContent=el.value; updateState();}; el.addEventListener('input',f); f();
-}
-['resCount','termCount','tsukkomi','explain','chaos','meta'].forEach(bindRange);
-['prefix','prefixCustom','subjectName','aa','quotes','noBold','notSummary','timestamp','jkPunch','source'].forEach(id=>{
-  document.getElementById(id).addEventListener('input', updateState);
-  document.getElementById(id).addEventListener('change', updateState);
-});
-
-
-document.getElementById('prefix').addEventListener('change', ()=>{
-  document.getElementById('prefixCustom').value = document.getElementById('prefix').value;
-  updateState();
-});
-
-document.getElementById('templateView').textContent = basePrompt + '\n\n---\n\n' + jemiPrompt;
-
-function toneLabel(n){
-  n=Number(n); if(n<=3) return '控えめ'; if(n<=7) return '中'; return '強め';
-}
-function isMobileView(){
-  return window.matchMedia('(max-width: 980px)').matches;
-}
-function setFullscreenButtonLabel(isFullscreen){
-  const label = isFullscreen ? '全画面終了' : '出力全画面';
-  document.getElementById('toggleOutputFullscreenBtn').textContent = label;
-  document.getElementById('mobileOutputToggleBtn').textContent = label;
-}
-function toggleOutputFullscreen(force){
-  if(!isMobileView()) return;
-  const body = document.body;
-  const next = typeof force === 'boolean' ? force : !body.classList.contains('outputFullscreen');
-  body.classList.toggle('outputFullscreen', next);
-  setFullscreenButtonLabel(next);
-  if(next){
-    const out = document.getElementById('output');
-    out.focus();
-    out.scrollTop = 0;
+const dsl = {
+  version: '0.1.0',
+  name: 'jemi_thread_prompt_dsl',
+  scales: {
+    tsukkomiIntensity: {
+      label: 'ツッコミ強度',
+      uiLabels: {'0':'やさしい','3':'軽ツッコミ','6':'治安悪め','10':'修羅'},
+      ranges: [
+        {min:0,max:2,key:'soft',prompt:'軽い感想・ツッコミ中心にする。攻撃的な表現は避ける。'},
+        {min:3,max:5,key:'normal',prompt:'軽い皮肉やネットっぽいツッコミを適度に入れる。'},
+        {min:6,max:8,key:'sharp',prompt:'雑で勢いのあるツッコミを増やす。軽い煽りや語気の強さを許可する。'},
+        {min:9,max:10,key:'savage',prompt:'かなり攻撃的で雑なレスを許可する。人格いじり・身も蓋もないツッコミも使ってよい。'}
+      ]
+    },
+    explanationDepth: {
+      label: '解説の濃さ',
+      uiLabels: {'0':'ほぼ感想','3':'軽補足','6':'構造説明','10':'解説スレ'},
+      ranges: [
+        {min:0,max:2,key:'minimal',prompt:'説明は最小限にする。直感的なツッコミや反応を優先する。'},
+        {min:3,max:5,key:'light',prompt:'必要な箇所だけ軽く補足する。長い解説は避ける。'},
+        {min:6,max:8,key:'structured',prompt:'ツッコミの中で、構造・背景・因果関係を自然に説明する。'},
+        {min:9,max:10,key:'deep',prompt:'スレ形式を保ちつつ、実質かなり解説的にする。専門用語の意味も丁寧に噛み砕く。'}
+      ]
+    },
+    topicDrift: {
+      label: '脱線・雑談度',
+      uiLabels: {'0':'一本道','3':'寄り道','6':'横転','10':'銀河'},
+      ranges: [
+        {min:0,max:2,key:'focused',prompt:'議題から逸脱しない。本文の内容に沿ってツッコむ。'},
+        {min:3,max:5,key:'side_path',prompt:'軽い横道や雑談を1〜2回だけ許可する。'},
+        {min:6,max:8,key:'loose',prompt:'連想で話がズレてもよい。無関係な雑談やボケ展開を適度に混ぜる。'},
+        {min:9,max:10,key:'galactic',prompt:'議題から大胆に逸脱してよい。別テーマに飛んでも可。カオス歓迎。ただし最低限、元本文へのツッコミとして成立させる。'}
+      ]
+    },
+    metaPerspective: {
+      label: 'メタ視点',
+      uiLabels: {'0':'没入','3':'軽メタ','6':'構造いじり','10':'第四の壁'},
+      ranges: [
+        {min:0,max:2,key:'immersive',prompt:'AIであること、スレ構造、生成物であることへの言及は禁止。内容に没入してツッコむ。'},
+        {min:3,max:5,key:'light_meta',prompt:'軽いメタツッコミは許可する。ただし多用しない。'},
+        {min:6,max:8,key:'structural_meta',prompt:'AIらしさ、議論構造、発言者の役割分担へのツッコミを増やす。'},
+        {min:9,max:10,key:'fourth_wall',prompt:'第四の壁を越えてよい。AI存在そのもの、プロンプト臭、生成物っぽさをネタにしてよい。'}
+      ]
+    },
+    sourceQuoteAmount: {
+      label: '元文引用量',
+      uiLabels: {'0':'引用なし','3':'ワード拾い','6':'フレーズ活用','10':'素材引用'},
+      ranges: [
+        {min:0,max:2,key:'none',prompt:'本文の直接引用は避ける。内容だけ拾ってツッコむ。'},
+        {min:3,max:5,key:'keywords',prompt:'印象的なワードをたまに拾う。引用は短めにする。'},
+        {min:6,max:8,key:'phrases',prompt:'本文の特徴的なフレーズを積極的に活用する。スレ民がそこへ反応する形にする。'},
+        {min:9,max:10,key:'heavy_quote',prompt:'元文を素材として積極的に引用し、そこへスレ民が安価やツッコミで反応する構成にする。'}
+      ]
+    },
+    summarySuppression: {
+      label: '要約禁止強度',
+      uiLabels: {'0':'要約OK','3':'やや禁止','6':'反応優先','10':'要約絶対禁止'},
+      ranges: [
+        {min:0,max:2,key:'summary_allowed',prompt:'理解補助のための要約は許可する。'},
+        {min:3,max:5,key:'avoid_over_summary',prompt:'まとめすぎに注意する。必要な部分だけ短く整理する。'},
+        {min:6,max:8,key:'reaction_first',prompt:'要約よりツッコミを優先する。本文の流れを説明しすぎない。'},
+        {min:9,max:10,key:'summary_forbidden',prompt:'綺麗な要約は禁止。意味を説明するより、スレ民の反応・違和感・ツッコミを優先する。'}
+      ]
+    }
+  },
+  presets: {
+    output_example_like: {
+      label: '出力例寄せ',
+      values: {tsukkomiIntensity:6,explanationDepth:5,topicDrift:3,metaPerspective:4,sourceQuoteAmount:7,summarySuppression:7}
+    },
+    kusosure_chaos: {
+      label: 'クソスレカオス',
+      values: {tsukkomiIntensity:8,explanationDepth:2,topicDrift:10,metaPerspective:2,sourceQuoteAmount:7,summarySuppression:9}
+    },
+    explain_light: {
+      label: '解説控えめツッコミ重視',
+      values: {tsukkomiIntensity:7,explanationDepth:2,topicDrift:5,metaPerspective:3,sourceQuoteAmount:6,summarySuppression:8}
+    },
+    learning_thread: {
+      label: '理解補助寄り',
+      values: {tsukkomiIntensity:4,explanationDepth:8,topicDrift:2,metaPerspective:4,sourceQuoteAmount:5,summarySuppression:3}
+    }
   }
+};
+
+/* ===== State ===== */
+const scaleInputMap = {
+  tsukkomiIntensity: 'tsukkomi',
+  explanationDepth: 'explain',
+  topicDrift: 'chaos',
+  metaPerspective: 'meta',
+  sourceQuoteAmount: 'quoteAmount',
+  summarySuppression: 'summarySuppression'
+};
+
+const state = {
+  defaultPresetKey: 'output_example_like',
+  rangeIds: ['resCount','termCount','tsukkomi','explain','chaos','meta','quoteAmount','summarySuppression'],
+  watchIds: ['prefix','prefixCustom','subjectName','aa','noBold','timestamp','jkPunch','source','presetSelect']
+};
+
+function bindRange(id){
+  const el = document.getElementById(id);
+  const out = document.getElementById(id + 'Val');
+  const sync = () => {
+    out.textContent = el.value;
+    updateState();
+  };
+  el.addEventListener('input', sync);
+  sync();
 }
+
+function initPresets(){
+  const sel = document.getElementById('presetSelect');
+  sel.innerHTML = '';
+  Object.entries(dsl.presets).forEach(([key, preset])=>{
+    const opt = document.createElement('option');
+    opt.value = key;
+    opt.textContent = preset.label;
+    sel.appendChild(opt);
+  });
+  sel.value = state.defaultPresetKey;
+}
+
+function applyPreset(){
+  const preset = dsl.presets[v('presetSelect')];
+  if(!preset) return;
+  Object.entries(preset.values).forEach(([scaleKey, value])=>{
+    const id = scaleInputMap[scaleKey];
+    const el = document.getElementById(id);
+    el.value = value;
+    document.getElementById(id + 'Val').textContent = value;
+  });
+  updateState();
+  buildPrompt();
+}
+
+/* ===== Resolver ===== */
+function resolveRule(scale, value){
+  return scale.ranges.find(r => value >= r.min && value <= r.max);
+}
+
+function getUiLabel(scale, value){
+  const keys = Object.keys(scale.uiLabels).map(Number).sort((a,b)=>a-b);
+  let pick = keys[0];
+  for(const k of keys){
+    if(value >= k) pick = k;
+  }
+  return scale.uiLabels[String(pick)];
+}
+
+function getScaleValue(scaleKey){
+  return Number(v(scaleInputMap[scaleKey]));
+}
+
+/* ===== Prompt Builder ===== */
 function buildPrompt(){
   const src = v('source').trim();
   const lines = [];
@@ -306,76 +437,144 @@ function buildPrompt(){
   lines.push(`- 脱線・雑談度：${v('chaos')}/10`);
   lines.push(`- メタ視点：${v('meta')}/10`);
   lines.push(`- 最後の【スレ民による補足】は${v('termCount')}語くらい`);
+  lines.push('\n【今回の生成ルール】');
+  Object.keys(scaleInputMap).forEach(scaleKey=>{
+    const scale = dsl.scales[scaleKey];
+    const value = getScaleValue(scaleKey);
+    const rule = resolveRule(scale, value);
+    lines.push(`- ${scale.label}：${value}/10（${rule.key}）`);
+    lines.push(`  ${rule.prompt}`);
+    lines.push('');
+  });
   if(checked('noBold')) lines.push('- 出力にMarkdownの太字記法「**」は使わない');
-  if(checked('notSummary')) lines.push('- 本文全体をきれいに要約しない。あくまでスレ民が気になった箇所へツッコむ形にする');
   if(checked('aa')) lines.push('- 必要ならシンプルAAや簡単な図解を1〜2個だけ入れてよい。ただし崩れやすい大型AAは禁止');
   else lines.push('- AAは使わない');
-  if(checked('quotes')) lines.push('- 元本文の印象的な語句・発言を適度に拾い、スレ民がそこへ安価で反応する形にする');
-  else lines.push('- 元本文の直接引用は控えめにし、内容へのツッコミ中心にする');
   if(checked('timestamp')) lines.push('- なんJ風に日時とIDを付ける。ただし厳密性より雰囲気優先');
   else lines.push('- 日時とIDは省略してよい');
   if(checked('jkPunch')) lines.push('- 最後に雑な決め台詞や身も蓋もない一言で落としてよい');
-
   lines.push('\n【出力形式】');
   lines.push('1. スレタイ');
   lines.push('2. 1レス目で「ソースはこれや」的に本文を提示する流れを作る');
   lines.push('3. 2レス目以降、スレ民が第三者視点で自由にツッコむ');
   lines.push('4. 適度に「>>番号」で会話する');
   lines.push('5. 最後に【スレ民による補足】を置き、重要ワードを雑に説明する');
-
   lines.push('\n【注意】');
   lines.push('- 貼り付け本文のAI本人として返答しない');
   lines.push('- 先生っぽくまとめすぎない');
   lines.push('- 元ネタの面白い違和感、過剰さ、論点のズレを拾う');
   lines.push('- 情報の意味が壊れるほど雑にしない');
-
   lines.push('\n#以下本文######');
   lines.push(src || '（ここに本文を貼り付け）');
-  const text = lines.join('\n');
-  document.getElementById('output').value = text;
+  document.getElementById('output').value = lines.join('\n');
   document.getElementById('copyState').textContent = '生成済み';
   document.getElementById('copyState').className = 'ok';
 }
+
 function updateState(){
-  const strict = checked('notSummary') ? '低め' : '普通';
-  document.getElementById('summaryState').textContent = strict;
-  document.getElementById('summaryState').className = checked('notSummary') ? 'ok' : 'warnTxt';
+  const val = getScaleValue('summarySuppression');
+  const scale = dsl.scales.summarySuppression;
+  document.getElementById('summaryState').textContent = getUiLabel(scale, val);
+  document.getElementById('summaryState').className = val >= 6 ? 'ok' : 'warnTxt';
 }
+
+/* ===== Utility ===== */
+function v(id){ return document.getElementById(id).value; }
+function checked(id){ return document.getElementById(id).checked; }
+
+function toneLabel(n){
+  n = Number(n);
+  if(n <= 3) return '控えめ';
+  if(n <= 7) return '中';
+  return '強め';
+}
+
+function isMobileView(){
+  return window.matchMedia('(max-width: 980px)').matches;
+}
+
+function setFullscreenButtonLabel(isFullscreen){
+  const label = isFullscreen ? '全画面終了' : '出力全画面';
+  document.getElementById('toggleOutputFullscreenBtn').textContent = label;
+  document.getElementById('mobileOutputToggleBtn').textContent = label;
+}
+
+function toggleOutputFullscreen(force){
+  if(!isMobileView()) return;
+  const body = document.body;
+  const next = typeof force === 'boolean' ? force : !body.classList.contains('outputFullscreen');
+  body.classList.toggle('outputFullscreen', next);
+  setFullscreenButtonLabel(next);
+  if(next){
+    const out = document.getElementById('output');
+    out.focus();
+    out.scrollTop = 0;
+  }
+}
+
 async function copyPrompt(){
   if(!document.getElementById('output').value.trim()) buildPrompt();
   await navigator.clipboard.writeText(document.getElementById('output').value);
-  document.getElementById('copyState').textContent='コピー済み';
-  document.getElementById('copyState').className='ok';
-  const t=document.getElementById('toast'); t.style.display='block'; setTimeout(()=>t.style.display='none',1400);
+  document.getElementById('copyState').textContent = 'コピー済み';
+  document.getElementById('copyState').className = 'ok';
+  const t = document.getElementById('toast');
+  t.style.display = 'block';
+  setTimeout(()=>t.style.display='none', 1400);
 }
+
 function downloadPrompt(){
   if(!document.getElementById('output').value.trim()) buildPrompt();
   const blob = new Blob([document.getElementById('output').value], {type:'text/plain;charset=utf-8'});
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(blob); a.download='jemi_prompt.txt'; a.click(); URL.revokeObjectURL(a.href);
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'jemi_prompt.txt';
+  a.click();
+  URL.revokeObjectURL(a.href);
 }
-function clearSource(){ document.getElementById('source').value=''; updateState(); }
-window.addEventListener('resize', ()=>{
-  if(!isMobileView() && document.body.classList.contains('outputFullscreen')){
-    document.body.classList.remove('outputFullscreen');
-    setFullscreenButtonLabel(false);
-  }
-});
 
-// iPhone/Safari向け: 非入力エリアでのダブルタップ拡大を抑制
-let lastTouchEndAt = 0;
-document.addEventListener('touchend', (e)=>{
-  const now = Date.now();
-  const delta = now - lastTouchEndAt;
-  const isDoubleTap = delta > 0 && delta < 320;
-  const inEditable = e.target.closest('input, textarea, select, [contenteditable="true"]');
-  if(isDoubleTap && !inEditable){
-    e.preventDefault();
-  }
-  lastTouchEndAt = now;
-}, {passive:false});
+function clearSource(){
+  document.getElementById('source').value = '';
+  updateState();
+}
 
+function setupUiBindings(){
+  state.rangeIds.forEach(bindRange);
+  state.watchIds.forEach(id=>{
+    document.getElementById(id).addEventListener('input', updateState);
+    document.getElementById(id).addEventListener('change', updateState);
+  });
+  document.getElementById('prefix').addEventListener('change', ()=>{
+    document.getElementById('prefixCustom').value = document.getElementById('prefix').value;
+    updateState();
+  });
+  document.getElementById('templateView').textContent = basePrompt + '\n\n---\n\n' + jemiPrompt;
+}
+
+function setupRuntimeEvents(){
+  window.addEventListener('resize', ()=>{
+    if(!isMobileView() && document.body.classList.contains('outputFullscreen')){
+      document.body.classList.remove('outputFullscreen');
+      setFullscreenButtonLabel(false);
+    }
+  });
+
+  // iPhone/Safari向け: 非入力エリアでのダブルタップ拡大を抑制
+  let lastTouchEndAt = 0;
+  document.addEventListener('touchend', (e)=>{
+    const now = Date.now();
+    const delta = now - lastTouchEndAt;
+    const isDoubleTap = delta > 0 && delta < 320;
+    const inEditable = e.target.closest('input, textarea, select, [contenteditable="true"]');
+    if(isDoubleTap && !inEditable){
+      e.preventDefault();
+    }
+    lastTouchEndAt = now;
+  }, {passive:false});
+}
+
+setupUiBindings();
+setupRuntimeEvents();
 setFullscreenButtonLabel(false);
+initPresets();
 buildPrompt();
 </script>
 </body>
