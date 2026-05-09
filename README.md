@@ -19,6 +19,18 @@
   - メタ視点
   - 元文引用量
   - 要約禁止強度
+- ネタ燃料セレクタ（参照元ジャンル制御）
+  - おまかせ
+  - 野球
+  - アニメ
+  - ゲーム
+  - 時事ネタ
+  - ネットミーム
+  - 歴史
+  - 金融
+  - 理系
+  - 動物
+  - カオスMIX
 - プリセット適用
   - 出力例寄せ
   - クソスレカオス
@@ -51,13 +63,32 @@
 
 - 定義オブジェクト: `dsl`
 - スケール定義: `dsl.scales`
+- ネタ燃料定義: `dsl.referenceDomain`
 - プリセット定義: `dsl.presets`
 - ルール解決: `resolveRule(scale, value)`
+- ネタ燃料解決: `getReferenceDomainRule()`
 
 生成プロンプトには `【今回の生成ルール】` セクションが追加され、各スライダーについて次の形式で出力されます。
 
 - `ラベル：値/10（key）`
 - 対応する操作的指示文（`prompt`）
+
+さらに `【ネタ燃料】` セクションが追加されます。
+
+- `選択中：ラベル`
+- `指示：選択ジャンルの操作的定義`
+
+## 内部構造（単一HTML）
+
+`index.html` は単一ファイルのまま、以下レイヤーコメントで整理されています。
+
+- `HTML UI LAYER`
+- `CSS STYLE LAYER`
+- `DSL CONFIG LAYER`
+- `STATE / EVENT BINDING LAYER`
+- `RESOLVER LAYER`
+- `PROMPT BUILDER LAYER`
+- `UTILITY LAYER`
 
 ## ファイル構成
 
