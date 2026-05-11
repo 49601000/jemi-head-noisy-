@@ -200,6 +200,13 @@
     button.secondary{background:rgba(15,23,42,.75); border:1px solid rgba(148,163,184,.2); color:#e2e8f0;}
     button.good{background:linear-gradient(135deg,#7c3aed,#8b5cf6)}
     button.warn{background:linear-gradient(135deg,#7c3aed,#8b5cf6)}
+    button:disabled{
+      opacity:.46;
+      cursor:not-allowed;
+      pointer-events:none;
+      filter:saturate(.65);
+      box-shadow:none;
+    }
     .mini{font-size:12px; color:#94a3b8; line-height:1.55; margin-top:8px;}
     details{border-top:1px solid var(--line);}
     summary{cursor:pointer; padding:14px 18px; color:#ded3ff; font-weight:800; user-select:none;}
@@ -427,7 +434,7 @@
   <!-- Mobile Quick Actions -->
   <div class="mobileActions">
     <button class="good" id="mobileBuildBtn" onclick="buildPrompt()">生成</button>
-    <button id="mobileCopyBtn" onclick="copyPrompt()">コピー</button>
+    <button id="mobileCopyBtn" onclick="copyPrompt()" disabled>コピー</button>
     <button id="mobileOutputToggleBtn" class="secondary wideOnNarrow" onclick="toggleOutputFullscreen()">出力全画面</button>
   </div>
   <!-- Toast -->
@@ -734,6 +741,7 @@ function buildPrompt(){
     btn.textContent = originalText;
     mobileBtn.textContent = mobileOriginalText;
   }, 800);
+  setMobileCopyEnabled(true);
 }
 
 function updateState(){
@@ -787,6 +795,11 @@ function toggleOutputFullscreen(force){
     out.focus();
     out.scrollTop = 0;
   }
+}
+
+function setMobileCopyEnabled(enabled){
+  const mobileBtn = document.getElementById('mobileCopyBtn');
+  mobileBtn.disabled = !enabled;
 }
 
 async function copyPrompt(){
@@ -876,7 +889,10 @@ setupUiBindings();
 setupRuntimeEvents();
 setFullscreenButtonLabel(false);
 initPresets();
-buildPrompt();
+document.getElementById('output').value = '';
+document.getElementById('copyState').textContent = '未コピー';
+document.getElementById('copyState').className = 'warnTxt';
+setMobileCopyEnabled(false);
 </script>
 </body>
 </html>
