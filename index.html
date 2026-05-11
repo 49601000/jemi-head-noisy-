@@ -39,8 +39,57 @@
     .grid2{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
     .checks{display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:8px;}
     .check{display:flex; align-items:center; gap:8px; border:1px solid var(--line); border-radius:12px; padding:9px 10px; background:#0a1020; color:#cbd5e1; font-size:13px;}
+    /* ── PERSONA BUTTONS ── */
+    .persona-group {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top:14px;
+    }
+
+    .persona-btn {
+      border: 1.5px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      color: var(--muted);
+      padding: 10px 8px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      font-family: inherit;
+      text-align: center;
+      transition: all .15s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+    .persona-btn:hover {
+      border-color: var(--accent);
+      color: #7c3aed;
+      background: rgba(124,58,237,.1);
+    }
+    .persona-btn.is-active {
+      border-color: var(--accent);
+      background: rgba(124,58,237,.1);
+      color: #7c3aed;
+      box-shadow: 0 0 0 3px rgba(124,58,237,.12);
+    }
+    .persona-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--line);
+      transition: background .15s;
+    }
+    .persona-btn.is-active .persona-dot { background: var(--accent); }
     .btns{display:flex; flex-wrap:wrap; gap:10px; margin-top:14px;}
-    button{border:none; border-radius:12px; padding:10px 13px; color:white; background:linear-gradient(135deg,var(--accent),#2563eb); cursor:pointer; font-weight:800; letter-spacing:.02em; min-height:var(--tap);}
+    button{border:none; border-radius:12px; padding:10px 13px; color:white; background:linear-gradient(135deg,var(--accent),#2563eb); cursor:pointer; font-weight:800; letter-spacing:.02em; min-height:var(--tap); min-width:112px; transition: transform .15s ease, filter .15s ease, box-shadow .15s ease, opacity .15s ease;}
+    button.clicked { transform: translateY(1px) scale(0.98); opacity: .9; filter: brightness(0.88); }
+    button.clicked, button.good.clicked, button.secondary.clicked, button.warn.clicked { box-shadow: inset 0 0 0 2px rgba(255,255,255,.22); }
+    button.clicked { box-shadow: inset 0 0 0 2px rgba(255,255,255,.22), 0 0 0 6px rgba(124,58,237,.16); }
+    button.good.clicked { box-shadow: inset 0 0 0 2px rgba(255,255,255,.22), 0 0 0 6px rgba(5,150,105,.22); }
+    button.secondary.clicked { box-shadow: inset 0 0 0 2px rgba(255,255,255,.22), 0 0 0 6px rgba(148,163,184,.22); }
+    button.warn.clicked { box-shadow: inset 0 0 0 2px rgba(255,255,255,.22), 0 0 0 6px rgba(251,113,133,.22); }
     button.secondary{background:#18233d; border:1px solid var(--line); color:#dbeafe;}
     button.good{background:linear-gradient(135deg,#059669,#0ea5e9)}
     button.warn{background:linear-gradient(135deg,#b45309,#db2777)}
@@ -144,7 +193,7 @@
         <p class="mini">固定候補を選ぶとここに反映。最終的に使う接頭辞はこの編集欄の文字やで。</p>
 
         <label>題材の呼び名</label>
-        <input id="subjectName" type="text" value="AIさんたち" placeholder="例：AIさんたち / 最新AIさん / ジェミニキ" />
+        <input id="subjectName" type="text" value="元ネタ" placeholder="例：AIさんたち / 最新AIさん / ジェミニキ" />
 
         <div class="grid2">
           <div>
@@ -198,13 +247,14 @@
           <label class="check"><input id="noBold" type="checkbox" checked> **禁止を明記</label>
           <label class="check"><input id="timestamp" type="checkbox" checked> 日時IDつき</label>
           <label class="check"><input id="jkPunch" type="checkbox"> 雑な決め台詞許可</label>
+          <label class="check"><input id="aiResbaMode" type="checkbox" checked> AIレスバ特化</label>
         </div>
 
         <div class="btns">
-          <button class="good" onclick="buildPrompt()">プロンプト生成</button>
-          <button onclick="copyPrompt()">コピー</button>
-          <button class="secondary" onclick="downloadPrompt()">.txt保存</button>
-          <button class="warn" onclick="clearSource()">本文クリア</button>
+          <button class="good" id="buildBtn" onclick="buildPrompt()">プロンプト生成</button>
+          <button id="copyBtn" onclick="copyPrompt()">コピー</button>
+          <button class="secondary" id="downloadBtn" onclick="downloadPrompt()">.txt保存</button>
+          <button class="warn" id="clearBtn" onclick="clearSource()">本文クリア</button>
         </div>
         <p class="mini">運用：このアプリで生成したプロンプトをGemに投げる。Gemの人格・ベース指示は既にある前提なので、ここでは「今回の素材に対する出力指示」を組む。</p>
       </div>
@@ -222,7 +272,7 @@
       <h2>本文入力 / 出力プロンプト</h2>
       <div class="body">
         <div class="preview">
-          <div class="pill"><b>モード</b><span>第三者ツッコミ</span></div>
+          <div class="pill"><b>モード</b><span id="modeState">第三者ツッコミ</span></div>
           <div class="pill"><b>フォーマット</b><span>なんJスレ</span></div>
           <div class="pill"><b>要約圧</b><span id="summaryState" class="ok">低め</span></div>
           <div class="pill"><b>コピー状態</b><span id="copyState" class="warnTxt">未コピー</span></div>
@@ -243,8 +293,8 @@
   </main>
   <!-- Mobile Quick Actions -->
   <div class="mobileActions">
-    <button class="good" onclick="buildPrompt()">生成</button>
-    <button onclick="copyPrompt()">コピー</button>
+    <button class="good" id="mobileBuildBtn" onclick="buildPrompt()">生成</button>
+    <button id="mobileCopyBtn" onclick="copyPrompt()">コピー</button>
     <button id="mobileOutputToggleBtn" class="secondary wideOnNarrow" onclick="toggleOutputFullscreen()">出力全画面</button>
   </div>
   <!-- Toast -->
@@ -279,6 +329,15 @@ const jemiPrompt = `「ジェミの頭の中がうるさすぎる」専用プロ
 ・貼り付けたAIとしての立場ではなく、あくまでスレ民たちが自由に第三者視点でツッコむ
 ・AAは環境依存を避けるためシンプルAAのみ使用
 ・最後は【スレ民による補足】としてワードを雑にまとめる`;
+
+const genericThreadPrompt = `元ネタ本文をもとに、なんj風のスレを立ててください。
+
+・スレ民が本文を読んで自然に反応する
+・本文の要点をただ要約するのではなく、引っかかる箇所、違和感、面白い表現、ツッコミどころを拾う
+・スレ民同士の会話、安価、横道、雑談を使ってスレとして進行させる
+・本文のジャンルは固定しない。記事、会話ログ、創作、説明文、SNS投稿、AI会話など何でも扱える
+・必要に応じて本文の一部を引用してよい
+・最後は【スレ民による補足】として重要ワードを雑にまとめる`;
 
 const dsl = {
   version: '0.1.0',
@@ -394,7 +453,7 @@ const scaleInputMap = {
 const state = {
   defaultPresetKey: 'output_example_like',
   rangeIds: ['resCount','termCount','tsukkomi','explain','chaos','meta','quoteAmount','summarySuppression'],
-  watchIds: ['prefix','prefixCustom','subjectName','aa','noBold','timestamp','jkPunch','source','presetSelect','referenceDomain']
+  watchIds: ['prefix','prefixCustom','subjectName','aa','noBold','timestamp','jkPunch','source','presetSelect','referenceDomain','aiResbaMode']
 };
 
 function bindRange(id){
@@ -467,7 +526,8 @@ function buildPrompt(){
   const lines = [];
   lines.push(basePrompt);
   lines.push('\n---\n');
-  lines.push(jemiPrompt);
+  const modePrompt = checked('aiResbaMode') ? jemiPrompt : genericThreadPrompt;
+  lines.push(modePrompt);
   lines.push('\n\n【今回の出力設定】');
   lines.push(`- スレタイ接頭辞は「${v('prefixCustom') || v('prefix')}」を優先`);
   lines.push(`- 題材の呼び名は「${v('subjectName') || 'AIさんたち'}」を優先`);
@@ -499,12 +559,25 @@ function buildPrompt(){
   if(checked('jkPunch')) lines.push('- 最後に雑な決め台詞や身も蓋もない一言で落としてよい');
   lines.push('\n【出力形式】');
   lines.push('1. スレタイ');
-  lines.push('2. 1レス目で「ソースはこれや」的に本文を提示する流れを作る');
+  if(checked('aiResbaMode')){
+    lines.push('2. 1レス目で「ソースはこれや」的に、貼り付け本文を元ネタとして提示する流れを作る');
+  } else {
+    lines.push('2. 1レス目は、貼り付け本文をそのまま貼らず、スレ主が見つけてきたネタとして自然に紹介する');
+    lines.push('   ※ 綺麗な要約ではなく、「これどういうことや」「ここ草」「普通に気になる」みたいに、スレが始まる導入にする');
+  }
   lines.push('3. 2レス目以降、スレ民が第三者視点で自由にツッコむ');
   lines.push('4. 適度に「>>番号」で会話する');
   lines.push('5. 最後に【スレ民による補足】を置き、重要ワードを雑に説明する');
   lines.push('\n【注意】');
-  lines.push('- 貼り付け本文のAI本人として返答しない');
+  if(checked('aiResbaMode')){
+    lines.push('- 貼り付け本文を、GPT・Grok・Claude・Geminiなど複数AIの会話ログ、またはAIレスバ本文として扱う');
+    lines.push('- 貼り付け本文のAI本人として返答しない');
+    lines.push('- スレ民が第三者視点で自由にツッコむ');
+  } else {
+    lines.push('- 貼り付け本文の登場人物・書き手本人として返答しない');
+    lines.push('- スレ民が第三者視点で自然に反応する');
+    lines.push('- 元ネタのジャンルをAI会話に固定しない');
+  }
   lines.push('- 先生っぽくまとめすぎない');
   lines.push('- 元ネタの面白い違和感、過剰さ、論点のズレを拾う');
   lines.push('- 情報の意味が壊れるほど雑にしない');
@@ -513,6 +586,21 @@ function buildPrompt(){
   document.getElementById('output').value = lines.join('\n');
   document.getElementById('copyState').textContent = '生成済み';
   document.getElementById('copyState').className = 'ok';
+  // ボタンアクティブ
+  const btn = document.getElementById('buildBtn');
+  const mobileBtn = document.getElementById('mobileBuildBtn');
+  const originalText = btn.textContent;
+  const mobileOriginalText = mobileBtn.textContent;
+  btn.textContent = '生成OK';
+  mobileBtn.textContent = '生成OK';
+  btn.classList.add('clicked');
+  mobileBtn.classList.add('clicked');
+  setTimeout(() => {
+    btn.classList.remove('clicked');
+    mobileBtn.classList.remove('clicked');
+    btn.textContent = originalText;
+    mobileBtn.textContent = mobileOriginalText;
+  }, 800);
 }
 
 function updateState(){
@@ -520,6 +608,18 @@ function updateState(){
   const scale = dsl.scales.summarySuppression;
   document.getElementById('summaryState').textContent = getUiLabel(scale, val);
   document.getElementById('summaryState').className = val >= 6 ? 'ok' : 'warnTxt';
+
+  // モード表示
+  const modeText = checked('aiResbaMode') ? 'AIレスバ特化' : '汎用なんJスレ';
+  document.getElementById('modeState').textContent = modeText;
+
+  // 題材の呼び名
+  const subjectEl = document.getElementById('subjectName');
+  if (checked('aiResbaMode')) {
+    if (subjectEl.value === '元ネタ') subjectEl.value = 'AIさんたち';
+  } else {
+    if (subjectEl.value === 'AIさんたち') subjectEl.value = '元ネタ';
+  }
 }
 
 /* ===== UTILITY LAYER ===== */
@@ -564,6 +664,21 @@ async function copyPrompt(){
   const t = document.getElementById('toast');
   t.style.display = 'block';
   setTimeout(()=>t.style.display='none', 1400);
+  // ボタンアクティブ
+  const btn = document.getElementById('copyBtn');
+  const mobileBtn = document.getElementById('mobileCopyBtn');
+  const originalText = btn.textContent;
+  const mobileOriginalText = mobileBtn.textContent;
+  btn.textContent = 'コピーOK';
+  mobileBtn.textContent = 'コピーOK';
+  btn.classList.add('clicked');
+  mobileBtn.classList.add('clicked');
+  setTimeout(() => {
+    btn.classList.remove('clicked');
+    mobileBtn.classList.remove('clicked');
+    btn.textContent = originalText;
+    mobileBtn.textContent = mobileOriginalText;
+  }, 800);
 }
 
 function downloadPrompt(){
@@ -574,11 +689,19 @@ function downloadPrompt(){
   a.download = 'jemi_prompt.txt';
   a.click();
   URL.revokeObjectURL(a.href);
+  // ボタンアクティブ
+  const btn = document.getElementById('downloadBtn');
+  btn.classList.add('clicked');
+  setTimeout(() => btn.classList.remove('clicked'), 800);
 }
 
 function clearSource(){
   document.getElementById('source').value = '';
   updateState();
+  // ボタンアクティブ
+  const btn = document.getElementById('clearBtn');
+  btn.classList.add('clicked');
+  setTimeout(() => btn.classList.remove('clicked'), 800);
 }
 
 function setupUiBindings(){
@@ -591,7 +714,7 @@ function setupUiBindings(){
     document.getElementById('prefixCustom').value = document.getElementById('prefix').value;
     updateState();
   });
-  document.getElementById('templateView').textContent = basePrompt + '\n\n---\n\n' + jemiPrompt;
+  document.getElementById('templateView').textContent = basePrompt + '\n\n---\n\nAIレスバ特化:\n' + jemiPrompt + '\n\n---\n\n汎用:\n' + genericThreadPrompt;
 }
 
 function setupRuntimeEvents(){
