@@ -204,6 +204,10 @@
     details{border-top:1px solid var(--line);}
     summary{cursor:pointer; padding:14px 18px; color:#ded3ff; font-weight:800; user-select:none;}
     details .body{padding-top:0}
+    .paramDetails{margin-top:12px; border:1px solid rgba(139,92,246,.2); border-radius:12px; background:rgba(11,18,32,.45);}
+    .paramDetails summary{padding:12px 14px;}
+    .paramDetails .body{padding:0 14px 14px;}
+    .paramDetails .body label:first-child{margin-top:8px;}
     .sticky{position:sticky; top:14px; align-self:start;}
     .preview{display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:12px;}
     @media(max-width:700px){.preview{grid-template-columns:1fr 1fr}}
@@ -231,6 +235,7 @@
       .card h2{padding:14px;}
       .body{padding:14px;}
       .sticky{position:static!important}
+      #buildBtn, #copyBtn{display:none;}
       .mobileActions{
         display:grid;
         grid-template-columns:1fr 1fr 1fr;
@@ -318,6 +323,46 @@
         <label>題材の呼び名</label>
         <input id="subjectName" type="text" value="元ネタ" placeholder="例：AIさんたち / 最新AIさん / ジェミニキ" />
 
+        <label>出力設定</label>
+        <label>ネタ燃料</label>
+        <select id="referenceDomain">
+          <option value="random">おまかせ</option>
+          <option value="baseball">野球</option>
+          <option value="anime">アニメ</option>
+          <option value="game">ゲーム</option>
+          <option value="current_affairs">時事ネタ</option>
+          <option value="net_meme">ネットミーム</option>
+          <option value="history">歴史</option>
+          <option value="finance">金融</option>
+          <option value="science">理系</option>
+          <option value="animal">動物</option>
+          <option value="chaos_mix">カオスMIX</option>
+        </select>
+        <div class="checks">
+          <label class="check"><input id="aiResbaMode" type="checkbox" checked> AIレスバ特化</label>
+          <label class="check"><input id="aa" type="checkbox" checked> シンプルAA可</label>
+          <label class="check"><input id="noBold" type="checkbox" checked> **禁止を明記</label>
+          <label class="check"><input id="timestamp" type="checkbox" checked> 日時IDつき</label>
+          <label class="check"><input id="jkPunch" type="checkbox"> 雑な決め台詞許可</label>
+        </div>
+
+        <details class="paramDetails">
+          <summary>出力パラメータ（上級者向け）</summary>
+          <div class="body">
+            <label>脱線・雑談度</label>
+            <div class="row"><input id="chaos" type="range" min="0" max="10" value="3"><div class="val" id="chaosVal">3</div></div>
+
+            <label>メタ視点</label>
+            <div class="row"><input id="meta" type="range" min="0" max="10" value="4"><div class="val" id="metaVal">4</div></div>
+
+            <label>元文引用量</label>
+            <div class="row"><input id="quoteAmount" type="range" min="0" max="10" value="7"><div class="val" id="quoteAmountVal">7</div></div>
+
+            <label>要約禁止強度</label>
+            <div class="row"><input id="summarySuppression" type="range" min="0" max="10" value="7"><div class="val" id="summarySuppressionVal">7</div></div>
+          </div>
+        </details>
+
         <div class="grid2">
           <div>
             <label>レス数</label>
@@ -335,43 +380,8 @@
         <label>解説の濃さ</label>
         <div class="row"><input id="explain" type="range" min="0" max="10" value="5"><div class="val" id="explainVal">5</div></div>
 
-        <label>脱線・雑談度</label>
-        <div class="row"><input id="chaos" type="range" min="0" max="10" value="3"><div class="val" id="chaosVal">3</div></div>
-
-        <label>メタ視点</label>
-        <div class="row"><input id="meta" type="range" min="0" max="10" value="4"><div class="val" id="metaVal">4</div></div>
-
-        <label>元文引用量</label>
-        <div class="row"><input id="quoteAmount" type="range" min="0" max="10" value="7"><div class="val" id="quoteAmountVal">7</div></div>
-
-        <label>要約禁止強度</label>
-        <div class="row"><input id="summarySuppression" type="range" min="0" max="10" value="7"><div class="val" id="summarySuppressionVal">7</div></div>
-
         <label>プリセット</label>
         <div class="row"><select id="presetSelect"></select><button class="secondary" type="button" onclick="applyPreset()">適用</button></div>
-
-        <label>出力オプション</label>
-        <label>ネタ燃料</label>
-        <select id="referenceDomain">
-          <option value="random">おまかせ</option>
-          <option value="baseball">野球</option>
-          <option value="anime">アニメ</option>
-          <option value="game">ゲーム</option>
-          <option value="current_affairs">時事ネタ</option>
-          <option value="net_meme">ネットミーム</option>
-          <option value="history">歴史</option>
-          <option value="finance">金融</option>
-          <option value="science">理系</option>
-          <option value="animal">動物</option>
-          <option value="chaos_mix">カオスMIX</option>
-        </select>
-        <div class="checks">
-          <label class="check"><input id="aa" type="checkbox" checked> シンプルAA可</label>
-          <label class="check"><input id="noBold" type="checkbox" checked> **禁止を明記</label>
-          <label class="check"><input id="timestamp" type="checkbox" checked> 日時IDつき</label>
-          <label class="check"><input id="jkPunch" type="checkbox"> 雑な決め台詞許可</label>
-          <label class="check"><input id="aiResbaMode" type="checkbox" checked> AIレスバ特化</label>
-        </div>
 
         <div class="btns">
           <button class="good" id="buildBtn" onclick="buildPrompt()">プロンプト生成</button>
